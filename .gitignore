@@ -1,0 +1,4 @@
+Release/*
+build-PCM_Extractor-Desktop_Qt_5_15_2_MinGW_64_bit-Release/*
+build-PCM_Extractor-Desktop_Qt_5_15_2_MinGW_64_bit-Debug/*
+WinDeployQt.bat
