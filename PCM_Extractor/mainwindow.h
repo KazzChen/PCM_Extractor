@@ -41,6 +41,6 @@ private:
     QString wavFileFullPath;
 
     std::ifstream wavfile;
-    std::ofstream datafile;
+    std::ofstream data_file;
 };
 #endif // MAINWINDOW_H

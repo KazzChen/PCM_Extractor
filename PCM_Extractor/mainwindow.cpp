@@ -63,8 +63,10 @@ void MainWindow::on_enterButton_clicked()
     // close file
     if (wavfile.is_open())
         wavfile.close();
-    if (datafile.is_open())
-        datafile.close();
+    if (data_file.is_open())
+        data_file.close();
+    if (data_file.is_open())
+        data_file.close();
 }
 
 
@@ -189,7 +191,7 @@ bool MainWindow::CallWarningBox(unsigned char textNum) {
 bool MainWindow::ReadWavFileData(void) {
     int locate_tmp1, locate_tmp2;
     QString dataFileDefaultPath = wavFileFullPath;
-    QString dataFilePath;
+    QString data_file_path;
 
     // Get data
     unsigned char pcmData[dataLen];
@@ -202,12 +204,13 @@ bool MainWindow::ReadWavFileData(void) {
 
     // Open a file that saving PCM data
     while(1) {
-        dataFilePath = QFileDialog::getSaveFileName(this,
+        data_file_path = QFileDialog::getSaveFileName(this,
                                                             tr("Select a file to save data"),
                                                             dataFileDefaultPath,
                                                             "head files (*.h);;All files (*.*)");
-        datafile.open(dataFilePath.toStdString(), std::ios::out);
-        if (!datafile.is_open()) {
+        data_file.open(data_file_path.toStdString(), std::ios::out);
+
+        if (!data_file.is_open()) {
             if (!CallWarningBox(WARNING_DATA_FILE))
                 return false;
         }
@@ -216,25 +219,48 @@ bool MainWindow::ReadWavFileData(void) {
         }
     }
 
-    locate_tmp1 = dataFilePath.length() - dataFilePath.lastIndexOf("/") - 1;
-    dataFilePath = dataFilePath.right(locate_tmp1);
-    locate_tmp2 = dataFilePath.lastIndexOf(".");
-    dataFilePath = dataFilePath.left(locate_tmp2);
+    locate_tmp1 = data_file_path.length() - data_file_path.lastIndexOf("/") - 1;
+    data_file_path = data_file_path.right(locate_tmp1);
+    locate_tmp2 = data_file_path.lastIndexOf(".");
+    data_file_path = data_file_path.left(locate_tmp2);
 
 
     // Output data to file
-    datafile << "const unsigned char "<< dataFilePath.toStdString() << "[" << std::dec << dataLen << "] = {\n    ";
-    for (unsigned int i=0; i<dataLen; i++) {
-        datafile << "0x" << std::hex << (unsigned int)(pcmData[i]);
-        if (i != dataLen - 1) {
-            datafile << ", ";
+    if (!ui->checkBox->isChecked()) {
+        data_file << "const unsigned char "<< data_file_path.toStdString() << "[" << std::dec << dataLen << "] = {\n    ";
 
-            if ((i+1)%16 == 0) {
-                datafile << "\n    ";
+        for (unsigned int i=0; i<dataLen; i++) {
+            data_file << "0x" << std::hex << (unsigned int)(pcmData[i]);
+            if (i != dataLen - 1) {
+                data_file << ", ";
+
+                if ((i+1)%16 == 0) {
+                    data_file << "\n    ";
+                }
             }
         }
+        data_file << "\n};" << std::endl;
     }
-    datafile << "\n};" << std::endl;
+    else {
+        // convert data
+        data_file << "const unsigned char "<< data_file_path.toStdString() << "[" << std::dec << dataLen << "] = {\n    ";
+        for (unsigned int i=0; i<dataLen; i+=2) {
+            unsigned int tmp_data = (unsigned int)(pcmData[i+1]) * 256 + (unsigned int)(pcmData[i]) + 0x8000;
+            tmp_data = (tmp_data % 65536) / 16;
+            pcmData[i] = tmp_data % 256;
+            pcmData[i+1] = tmp_data / 256;
+            data_file << "0x" << std::hex << (unsigned int)(pcmData[i]);
+            data_file << ", 0x" << std::hex << (unsigned int)(pcmData[i+1]);
+            if (i != dataLen - 2) {
+                data_file << ", ";
+
+                if ((i+2)%16 == 0) {
+                    data_file << "\n    ";
+                }
+            }
+        }
+        data_file << "\n};" << std::endl;
+    }
 
     return true;
 }

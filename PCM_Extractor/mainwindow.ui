@@ -161,6 +161,19 @@
      </property>
     </widget>
    </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>220</y>
+      <width>271</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>16Bit to 12bit convertor</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
